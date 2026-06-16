@@ -1,6 +1,4 @@
-#!/bin/sh
-'''exec' "/Users/a.fida/Desktop/code/hse/agents/credits/Проект поддержки кредитования МСБ/.venv/bin/python3" "$0" "$@"
-' '''
+#!/Users/aleksandrfida/Desktop/ФКН/code/agents/final_project/llm_agents_hse_final_project/.venv/bin/python3
 import sys
 from httpx import main
 if __name__ == '__main__':

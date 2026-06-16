@@ -1,0 +1,74 @@
+<mxfile host="app.diagrams.net" version="24.0.0">
+  <diagram id="agent-arch" name="Архитектура агента">
+    <mxGraphModel dx="1400" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="600" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <mxCell id="title" value="Агент поддержки кредитования МСБ — поток одного хода (LangGraph ReAct + GigaChat-2)" style="text;html=1;fontSize=16;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="120" y="10" width="1360" height="30" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="in" value="Обращение клиента&#10;(+ history, channel, client_id)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff4d6;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="20" y="240" width="180" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="ctx" value="build_session_context&#10;+ SYSTEM_PROMPT (РП-ОБ-005)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f0ff;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="240" y="240" width="200" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="cluster" value="ReAct-граф (create_react_agent, GigaChat-2)" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;fillColor=#fbfdff;strokeColor=#2a7ade;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="480" y="80" width="620" height="420" as="geometry"/>
+        </mxCell>
+        <mxCell id="reason" value="reasoning ⇄ tool-calls&#10;(недетерминир. цепочка)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dbe9ff;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="510" y="250" width="180" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="rag" value="search_regulations" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eaf7ee;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="850" y="110" width="220" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="cli" value="get_client_profile / get_active_loans /&#10;get_applications / calc_early_repayment" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eaf7ee;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="850" y="190" width="220" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="mem" value="remember / recall" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eaf7ee;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="850" y="280" width="220" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="esc" value="escalate(trigger, summary)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe9e3;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="850" y="360" width="220" height="40" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="faiss" value="FAISS (.index)&#10;← GigaChat Embeddings&#10;← documents/*.md" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#eef7f0;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="100" width="160" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="db" value="clients.sqlite&#10;(read-only)" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#eef7f0;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="190" width="160" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="memjson" value=".memory/&lt;client_id&gt;.json" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#eef7f0;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="275" width="160" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="sink" value="escalation_sink&#10;(сигнал hand-off)" style="shape=note;whiteSpace=wrap;html=1;fillColor=#ffeee9;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="355" width="160" height="50" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="reflect" value="_reflect — самопроверка (GigaChat)&#10;недочёты? → переигровка 1 раз" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f1e8ff;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="700" y="520" width="280" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="out" value="Финальный ответ&#10;(+ escalations, + reflection)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff4d6;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="520" width="200" height="50" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e1" style="endArrow=classic;html=1;" edge="1" parent="1" source="in" target="ctx"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e2" style="endArrow=classic;html=1;" edge="1" parent="1" source="ctx" target="reason"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e3" style="endArrow=classic;startArrow=classic;html=1;" edge="1" parent="1" source="reason" target="rag"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e4" style="endArrow=classic;startArrow=classic;html=1;" edge="1" parent="1" source="reason" target="cli"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e5" style="endArrow=classic;startArrow=classic;html=1;" edge="1" parent="1" source="reason" target="mem"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e6" style="endArrow=classic;html=1;" edge="1" parent="1" source="reason" target="esc"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e7" style="endArrow=classic;startArrow=classic;html=1;" edge="1" parent="1" source="rag" target="faiss"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e8" style="endArrow=classic;startArrow=classic;html=1;" edge="1" parent="1" source="cli" target="db"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e9" style="endArrow=classic;startArrow=classic;html=1;" edge="1" parent="1" source="mem" target="memjson"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e10" style="endArrow=classic;html=1;" edge="1" parent="1" source="esc" target="sink"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e11" value="черновик" style="endArrow=classic;html=1;" edge="1" parent="1" source="reason" target="reflect"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e12" value="есть недочёты" style="endArrow=classic;html=1;dashed=1;" edge="1" parent="1" source="reflect" target="reason"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e13" value="ок" style="endArrow=classic;html=1;" edge="1" parent="1" source="reflect" target="out"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

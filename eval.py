@@ -107,6 +107,9 @@ def run_case(case, search_tool, judge_llm):
         "id": case["id"],
         "category": cat,
         "expected_outcome_type": case["expected_outcome_type"],
+        "difficulty": case.get("difficulty"),
+        "is_multiturn": bool(case.get("is_multiturn")),
+        "referenced_documents": case.get("referenced_documents", []),
         "triggers": triggers,
         "escalation_ok": esc_ok,
         "judge_pass": jd["pass"],
@@ -120,7 +123,31 @@ def main():
     ap.add_argument("--categories", default=None, help="через запятую; по умолчанию все")
     ap.add_argument("--limit-per-category", type=int, default=2)
     ap.add_argument("--report", default="eval_report.json")
+    ap.add_argument("--resume-errors", action="store_true",
+                    help="дозапустить только кейсы, упавшие с [ОШИБКА ПРОГОНА], и вписать их на место")
     args = ap.parse_args()
+
+    # Дозапуск только упавших кейсов (после протухания токена) — патчим report на месте.
+    if args.resume_errors:
+        prev = json.loads(Path(args.report).read_text(encoding="utf-8"))
+        by_id = {r["id"]: r for r in prev}
+        bad_ids = {r["id"] for r in prev if (r.get("answer") or "").startswith("[ОШИБКА")}
+        all_cases = {c["id"]: c for c in load_cases(None, None)}
+        todo = [all_cases[i] for i in bad_ids if i in all_cases]
+        print(f"Дозапуск упавших кейсов: {len(todo)}\n")
+        search_tool = make_search_tool()
+        judge_llm = make_llm(temperature=0.0)
+        for i, c in enumerate(todo, 1):
+            r = run_case(c, search_tool, judge_llm)
+            by_id[r["id"]] = r
+            jp = "judge✓" if r["judge_pass"] else "judge✗"
+            print(f"[{i}/{len(todo)}] {r['id']:7} {r['category']:20} {jp}")
+            ordered = [by_id[r0["id"]] for r0 in prev]
+            Path(args.report).write_text(
+                json.dumps(ordered, ensure_ascii=False, indent=2), encoding="utf-8")
+        still = sum(1 for r in by_id.values() if (r.get("answer") or "").startswith("[ОШИБКА"))
+        print(f"\nГотово. Осталось упавших: {still}. Отчёт: {args.report}")
+        return
 
     cats = args.categories.split(",") if args.categories else None
     cases = load_cases(cats, args.limit_per_category)
@@ -137,6 +164,10 @@ def main():
         jp = "judge✓" if r["judge_pass"] else "judge✗"
         print(f"[{i}/{len(cases)}] {r['id']:7} {r['category']:20} {jp:7} {esc:5} "
               f"trig={r['triggers']}")
+        # Инкрементальное сохранение: длинный прогон устойчив к протуханию токена.
+        Path(args.report).write_text(
+            json.dumps(results, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
 
     # --- агрегация по категориям ---
     by_cat = defaultdict(list)

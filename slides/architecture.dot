@@ -1,0 +1,44 @@
+// Архитектура агента — поток одного хода. Рендер: dot -Tpng architecture.dot -o architecture.png
+digraph agent {
+  rankdir=LR;
+  bgcolor="white";
+  node [fontname="Helvetica", fontsize=11, shape=box, style="rounded,filled", color="#3b3b3b", fillcolor="#f3f6fb"];
+  edge [fontname="Helvetica", fontsize=9, color="#555555"];
+  graph [fontname="Helvetica", labelloc="t", fontsize=15,
+         label="Агент поддержки кредитования МСБ — поток одного хода (LangGraph ReAct + GigaChat-2)"];
+
+  in   [label="Обращение клиента\n(+ history, channel, client_id)", fillcolor="#fff4d6"];
+  ctx  [label="build_session_context\n+ SYSTEM_PROMPT (РП-ОБ-005)", fillcolor="#e8f0ff"];
+
+  subgraph cluster_graph {
+    label="ReAct-граф (create_react_agent, GigaChat-2)";
+    fontname="Helvetica"; fontsize=12; style="rounded"; color="#2a7ade"; bgcolor="#fbfdff";
+    reason [label="reasoning ⇄ tool-calls\n(недетерминир. цепочка)", fillcolor="#dbe9ff"];
+
+    rag    [label="search_regulations", fillcolor="#eaf7ee"];
+    cli    [label="get_client_profile / get_active_loans /\nget_applications / calc_early_repayment", fillcolor="#eaf7ee"];
+    mem    [label="remember / recall", fillcolor="#eaf7ee"];
+    esc    [label="escalate(trigger, summary)", fillcolor="#ffe9e3"];
+  }
+
+  faiss  [label="FAISS (.index)\n← GigaChat Embeddings\n← documents/*.md", shape=cylinder, fillcolor="#eef7f0"];
+  db     [label="clients.sqlite\n(read-only)", shape=cylinder, fillcolor="#eef7f0"];
+  memjson[label=".memory/<client_id>.json", shape=cylinder, fillcolor="#eef7f0"];
+  sink   [label="escalation_sink\n(сигнал hand-off)", shape=note, fillcolor="#ffeee9"];
+
+  reflect[label="_reflect — самопроверка (GigaChat)\nнедочёты? → переигровка 1 раз", fillcolor="#f1e8ff"];
+  out    [label="Финальный ответ\n(+ escalations, + reflection)", fillcolor="#fff4d6"];
+
+  in -> ctx -> reason;
+  reason -> rag  [dir=both];
+  reason -> cli  [dir=both];
+  reason -> mem  [dir=both];
+  reason -> esc;
+  rag -> faiss [dir=both];
+  cli -> db [dir=both];
+  mem -> memjson [dir=both];
+  esc -> sink;
+  reason -> reflect [label="черновик"];
+  reflect -> reason [label="есть недочёты", style=dashed, constraint=false];
+  reflect -> out [label="ок"];
+}
